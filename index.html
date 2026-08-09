@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CasualCrawl — Dashboard</title>
+<style>
+:root{
+  --bg:#0a0e18; --panel:#101829; --panel2:#0d1420; --line:#1d2a3f; --text:#e9eef7;
+  --muted:#8a97b0; --teal:#1eb2aa; --teal-dim:#079c98; --mint:#b5ebdd; --red:#f87171; --green:#34d399;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+header{display:flex;align-items:center;gap:12px;padding:18px 28px;border-bottom:1px solid var(--line)}
+header img{width:34px;height:34px;border-radius:8px}
+header h1{font-size:18px;font-weight:700;letter-spacing:.2px}
+header .spacer{flex:1}
+.wrap{max-width:880px;margin:0 auto;padding:28px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+.card h2{font-size:15px;margin-bottom:14px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat .num{font-size:26px;font-weight:700;color:var(--teal)}
+.stat .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{color:var(--muted);text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding:8px;border-bottom:1px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted)}
+button{background:var(--teal);color:#04201c;border:0;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:14px}
+button:hover{background:var(--teal-dim)}
+button.ghost{background:transparent;color:var(--teal);border:1px solid var(--teal)}
+button.danger{background:transparent;color:var(--red);border:1px solid var(--red)}
+input{background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px 12px;font-size:14px;width:100%}
+input:focus{outline:2px solid var(--teal);border-color:transparent}
+form{display:flex;flex-direction:column;gap:12px}
+.bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:8px}
+.bar>div{height:100%;background:var(--teal);border-radius:99px}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.badge.ok{background:rgba(52,211,153,.15);color:var(--green)}
+.badge.off{background:rgba(139,152,180,.15);color:var(--muted)}
+.badge.limit{background:rgba(45,212,191,.15);color:var(--teal)}
+.badge.revoked{background:rgba(248,113,113,.15);color:var(--red)}
+.row{display:flex;gap:10px;align-items:center}
+.row input{flex:1}
+.hint{color:var(--muted);font-size:13px;margin-top:6px}
+#msg{position:fixed;right:20px;bottom:20px;background:#04201f;border:1px solid var(--teal);color:var(--teal);border-radius:10px;padding:12px 16px;display:none;font-size:14px}
+#app{display:none}
+#auth{max-width:360px;margin:80px auto}
+#auth h1{margin-bottom:8px;font-size:22px}
+pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;font:12px/1.6 ui-monospace,monospace;color:var(--muted);margin-top:8px}
+a.copy{color:var(--teal);cursor:pointer;text-decoration:none}
+</style>
+</head>
+<body>
+<header>
+  <img src="/assets/casualcrawl-logo.png" alt="CasualCrawl logo">
+  <h1>CasualCrawl</h1>
+  <span class="spacer"></span>
+  <button id="logout" class="ghost" style="display:none">Log out</button>
+</header>
+
+<div id="auth" class="card">
+  <h1>Community access</h1>
+  <p class="hint" style="margin-bottom:16px">Sign up for an API key. Link your own node to contribute capacity and go unlimited.</p>
+  <form id="authform">
+    <input id="email" type="email" placeholder="email" autocomplete="email" required>
+    <input id="password" type="password" placeholder="password (min 8 chars)" autocomplete="current-password" required>
+    <div class="row">
+      <button type="submit" id="authbtn" class="primary">Sign up</button>
+      <button type="button" id="switchbtn" class="ghost">Log in instead</button>
+      <button type="button" id="github" class="ghost">Continue with GitHub</button>
+      <button type="button" id="resetbtn" class="ghost">Forgot password?</button>
+    </div>
+  </form>
+  <p class="hint">On first signup the API key is shown once — copy it now.</p>
+</div>
+
+<div id="app">
+  <div class="wrap">
+    <div class="grid">
+      <div class="card"><div class="stat"><div class="num" id="s-quota">–</div><div class="lbl">monthly limit</div></div></div>
+      <div class="card"><div class="stat"><div class="num" id="s-used">–</div><div class="lbl">requests used</div></div></div>
+      <div class="card"><div class="stat"><div class="num" id="s-nodes">–</div><div class="lbl">linked nodes</div></div></div>
+    </div>
+
+    <div class="card">
+      <h2>API keys</h2>
+      <div class="row" style="margin-bottom:14px">
+        <input id="limit" type="number" placeholder="monthly limit (default 500000)" value="500000">
+        <button id="newkey">Create key</button>
+      </div>
+      <table><thead><tr><th>Key</th><th>Status</th><th>Usage</th><th></th></tr></thead><tbody id="keys"></tbody></table>
+      <p class="hint">Copy the key when created. Use it as <span class="mono">X-API-Key: [your key]</span> or <span class="mono">Authorization: Bearer [your key]</span>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Nodes <span class="badge limit" id="unlimited" style="display:none">unlimited active</span></h2>
+      <div class="row" style="margin-bottom:14px">
+        <button id="newtoken">Generate node link token</button>
+      </div>
+      <div id="linkbox" style="display:none">
+        <pre id="linkpre"></pre>
+        <p class="hint">Run on your machine: <span class="mono">export CASUALCRAWL_NODE_LINK_TOKEN='cc_link_…'<br>casualcrawl node --controller https://… --name home-node</span></p>
+      </div>
+      <table><thead><tr><th>Name</th><th>Status</th><th>Jobs</th><th>Last seen</th></tr></thead><tbody id="nodes"></tbody></table>
+    </div>
+
+    <div class="card">
+      <h2>API usage <span class="badge limit" id="rate-badge" style="display:none"></span></h2>
+      <div class="bar"><div id="rate-bar" style="width:0%"></div></div>
+      <table><thead><tr><th>Endpoint</th><th>Request</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">POST /v1/scrape</td><td>1 unit</td><td class="mono">scrape a page to markdown</td></tr>
+        <tr><td class="mono">POST /v1/crawl</td><td>maxPages units</td><td class="mono">crawl a site</td></tr>
+        <tr><td class="mono">POST /v1/jobs</td><td>maxPages units</td><td class="mono">dispatch to community nodes</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<div id="msg"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let mode='signup';
+async function api(method,path,body){
+  const r=await fetch(path,{method,headers:body?{'Content-Type':'application/json'}:{},credentials:'same-origin',body:body?JSON.stringify(body):undefined});
+  let d={}; try{d=await r.json()}catch(e){}
+  if(!r.ok) throw new Error((d.detail&&d.detail.error)?d.detail.error:(d.detail||('HTTP '+r.status)));
+  return d;
+}
+function msg(t){const m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(m._t);m._t=setTimeout(()=>m.style.display='none',6000);}
+function fmt(n){return n==null?'–':Number(n).toLocaleString();}
+function esc(s){const d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
+
+async function refresh(){
+  const me=await api('GET','/v1/me');
+  const keys=me.account.keys||[];
+  const nodes=me.account.nodes||[];
+  const usage=me.account.usage;
+  const unlimited=!!(usage&&usage.unlimited)||nodes.some(n=>n.community&&n.healthy);
+  const limit=usage?usage.monthlyLimit:Number(me.account.monthlyLimit||keys.reduce((s,k)=>s+k.monthlyLimit,0));
+  const used=usage?usage.used:Number(me.account.used??keys.reduce((s,k)=>s+k.used,0));
+  $('s-quota').textContent=unlimited?'∞':fmt(limit);
+  $('s-used').textContent=fmt(used);
+  $('s-nodes').textContent=fmt(nodes.length);
+  $('unlimited').style.display=unlimited?'inline-block':'none';
+  $('rate-badge').style.display=unlimited?'inline-block':'none';
+  $('rate-badge').textContent=unlimited?'unlimited':'';
+  $('rate-bar').style.width=(limit>0&&!unlimited)?(Math.min(100,(used/limit*100)).toFixed(1)+'%'):'0%';
+
+  const kb=$('keys');kb.innerHTML='';
+  for(const key of keys){
+    const pct=key.monthlyLimit>0?Math.min(100,(key.used/key.monthlyLimit*100)):0;
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td class="mono">'+esc(key.prefix)+'…</td>'+
+      '<td>'+(key.active?'<span class="badge ok">active</span>':'<span class="badge revoked">revoked</span>')+'</td>'+
+      '<td class="mono">'+fmt(key.used)+' / '+fmt(key.monthlyLimit)+'<div class="bar"><div style="width:'+pct+'%"></div></div></td>'+
+      '<td>'+(key.active?'<button class="danger" data-p="'+esc(key.prefix)+'" onclick="revoke(this.dataset.p)">Revoke</button>':'')+'</td>';
+    kb.appendChild(tr);
+  }
+  const nb=$('nodes');nb.innerHTML='';
+  for(const n of nodes){
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+esc(n.name)+'</td>'+
+      '<td>'+(n.healthy?'<span class="badge ok">healthy</span>':'<span class="badge off">offline</span>')+'</td>'+
+      '<td class="mono">'+fmt(n.jobsDone)+'</td><td class="mono">'+esc(n.lastSeen||'—')+'</td>';
+    nb.appendChild(tr);
+  }
+}
+async function revoke(p){await api('DELETE','/v1/account/keys/'+p);msg('key revoked');refresh();}
+async function newkey(){
+  const limit=parseInt($('limit').value||'500000',10);
+  const r=await api('POST','/v1/account/keys',{monthlyLimit:limit});
+  msg('Created key (shown once): '+r.apiKey);
+  refresh();
+}
+async function nlink(){
+  const r=await api('POST','/v1/account/node-link');
+  $('linkpre').textContent=r.token;
+  $('linkbox').style.display='block';
+  msg('link token generated — expires in '+Math.round(r.expiresIn/86400)+' days');
+}
+
+$('authform').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const body={email:$('email').value.trim(),password:$('password').value};
+  try{
+    const r=await api('POST',mode==='signup'?'/v1/auth/signup':'/v1/auth/login',body);
+    if(r.apiKey) msg('Account created. API key (shown once): '+r.apiKey);
+    if(r.verifyLink) msg('Verify your email: '+r.verifyLink);
+    $('auth').style.display='none';
+    $('logout').style.display='inline-block';
+    $('app').style.display='block';
+    await refresh();
+  }catch(err){msg(err.message);}
+});
+$('switchbtn').addEventListener('click',()=>{
+  mode=mode==='signup'?'login':'signup';
+  $('authbtn').textContent=mode==='signup'?'Sign up':'Log in';
+  $('switchbtn').textContent=mode==='signup'?'Log in instead':'Sign up instead';
+});
+$('logout').addEventListener('click',async()=>{await api('POST','/v1/auth/logout');location.reload();});
+$('github').addEventListener('click',()=>{location.href='/v1/auth/github';});
+$('resetbtn').addEventListener('click',async()=>{
+  const email=window.prompt('Email for the reset link:');
+  if(!email) return;
+  try{await api('POST','/v1/auth/reset-request',{email});msg('If that email exists, a reset link was sent.');}catch(err){msg(err.message);}
+});
+$('newkey').addEventListener('click',newkey);
+$('newtoken').addEventListener('click',nlink);
+
+(async()=>{
+  try{
+    await refresh();
+    $('auth').style.display='none';
+    $('logout').style.display='inline-block';
+    $('app').style.display='block';
+  }catch(e){
+    $('auth').style.display='block';
+    $('app').style.display='none';
+  }
+})();
+</script>
+</body>
+</html>
