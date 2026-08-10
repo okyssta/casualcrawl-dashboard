@@ -1,224 +1,804 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CasualCrawl — Dashboard</title>
+<title>CasualCrawl — Community-powered web crawling</title>
+<meta name="description" content="CasualCrawl is a lightweight, API-first web crawler powered by a community of nodes.">
 <style>
-:root{
-  --bg:#0a0e18; --panel:#101829; --panel2:#0d1420; --line:#1d2a3f; --text:#e9eef7;
-  --muted:#8a97b0; --teal:#1eb2aa; --teal-dim:#079c98; --mint:#b5ebdd; --red:#f87171; --green:#34d399;
+:root {
+  --bg: #080d13;
+  --surface: #0e161f;
+  --surface-2: #121e29;
+  --surface-3: #172632;
+  --line: #213340;
+  --line-strong: #2d4855;
+  --text: #f2f8f7;
+  --muted: #9aafb3;
+  --muted-2: #6d858b;
+  --teal: #1eb2aa;
+  --teal-bright: #56d5c5;
+  --mint: #b5ebdd;
+  --ink: #06221f;
+  --green: #55d6a1;
+  --red: #f28787;
+  --max: 1180px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
-header{display:flex;align-items:center;gap:12px;padding:18px 28px;border-bottom:1px solid var(--line)}
-header img{width:34px;height:34px;border-radius:8px}
-header h1{font-size:18px;font-weight:700;letter-spacing:.2px}
-header .spacer{flex:1}
-.wrap{max-width:880px;margin:0 auto;padding:28px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
-.card h2{font-size:15px;margin-bottom:14px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px}
-.stat .num{font-size:26px;font-weight:700;color:var(--teal)}
-.stat .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th{color:var(--muted);text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding:8px;border-bottom:1px solid var(--line)}
-td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted)}
-button{background:var(--teal);color:#04201c;border:0;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:14px}
-button:hover{background:var(--teal-dim)}
-button.ghost{background:transparent;color:var(--teal);border:1px solid var(--teal)}
-button.danger{background:transparent;color:var(--red);border:1px solid var(--red)}
-input{background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px 12px;font-size:14px;width:100%}
-input:focus{outline:2px solid var(--teal);border-color:transparent}
-form{display:flex;flex-direction:column;gap:12px}
-.bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:8px}
-.bar>div{height:100%;background:var(--teal);border-radius:99px}
-.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
-.badge.ok{background:rgba(52,211,153,.15);color:var(--green)}
-.badge.off{background:rgba(139,152,180,.15);color:var(--muted)}
-.badge.limit{background:rgba(45,212,191,.15);color:var(--teal)}
-.badge.revoked{background:rgba(248,113,113,.15);color:var(--red)}
-.row{display:flex;gap:10px;align-items:center}
-.row input{flex:1}
-.hint{color:var(--muted);font-size:13px;margin-top:6px}
-#msg{position:fixed;right:20px;bottom:20px;background:#04201f;border:1px solid var(--teal);color:var(--teal);border-radius:10px;padding:12px 16px;display:none;font-size:14px}
-#app{display:none}
-#auth{max-width:360px;margin:80px auto}
-#auth h1{margin-bottom:8px;font-size:22px}
-pre{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;font:12px/1.6 ui-monospace,monospace;color:var(--muted);margin-top:8px}
-a.copy{color:var(--teal);cursor:pointer;text-decoration:none}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, a:focus-visible {
+  outline: 3px solid var(--teal-bright);
+  outline-offset: 3px;
+}
+
+.site-header {
+  border-bottom: 1px solid rgba(45, 72, 85, .65);
+}
+.header-inner {
+  width: min(var(--max), calc(100% - 48px));
+  min-height: 76px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  flex-shrink: 0;
+}
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(86, 213, 197, .5);
+  border-radius: 10px;
+  padding: 3px;
+  background: #0c211f;
+  object-fit: cover;
+}
+.brand-name { font-weight: 760; letter-spacing: -.02em; }
+.brand-note {
+  display: block;
+  color: var(--muted-2);
+  font-size: 10px;
+  letter-spacing: .16em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-left: auto;
+}
+.site-nav a {
+  color: var(--muted);
+  font-size: 14px;
+  transition: color .18s ease;
+}
+.site-nav a:hover { color: var(--text); }
+.site-nav .nav-cta {
+  padding: 9px 15px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--text);
+}
+.site-nav .nav-cta:hover {
+  border-color: var(--teal);
+  color: var(--teal-bright);
+}
+
+.page-shell {
+  width: min(var(--max), calc(100% - 48px));
+  margin: 0 auto;
+}
+.hero {
+  min-height: 650px;
+  padding: 88px 0 72px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.03fr) minmax(400px, .97fr);
+  align-items: center;
+  gap: 76px;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 22px;
+  color: var(--teal-bright);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 0 4px rgba(30, 178, 170, .12);
+}
+h1, h2, h3, p { margin-top: 0; }
+.hero h1 {
+  max-width: 700px;
+  margin-bottom: 25px;
+  font-size: clamp(46px, 6vw, 78px);
+  font-weight: 760;
+  letter-spacing: -.065em;
+  line-height: .98;
+}
+.hero h1 .accent { color: var(--teal-bright); }
+.hero-copy {
+  max-width: 585px;
+  margin-bottom: 32px;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.65;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.button {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-weight: 700;
+  transition: border-color .18s ease, background-color .18s ease, color .18s ease, transform .18s ease;
+}
+.button:hover { transform: translateY(-1px); }
+.button.primary { background: var(--teal); color: var(--ink); }
+.button.primary:hover { background: var(--teal-bright); }
+.button.secondary {
+  border-color: var(--line-strong);
+  background: transparent;
+  color: var(--text);
+}
+.button.secondary:hover { border-color: var(--teal); color: var(--teal-bright); }
+.github-mark { width: 18px; height: 18px; flex: 0 0 auto; }
+.microcopy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 17px 0 0;
+  color: var(--muted-2);
+  font-size: 12px;
+}
+.check {
+  width: 15px;
+  height: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(85, 214, 161, .5);
+  border-radius: 50%;
+  color: var(--green);
+  font-size: 10px;
+}
+
+.hero-visual { position: relative; min-height: 470px; }
+.console {
+  position: absolute;
+  z-index: 2;
+  top: 22px;
+  right: 0;
+  width: min(100%, 490px);
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, .3);
+}
+.console-top {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 17px;
+  border-bottom: 1px solid var(--line);
+}
+.console-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); }
+.console-label { margin-left: 7px; color: var(--muted); font-size: 12px; }
+.console-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.console-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.console-body { padding: 24px 25px 27px; }
+.console-kicker { margin-bottom: 14px; color: var(--muted-2); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+.code-block {
+  margin: 0;
+  padding: 18px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #091119;
+  color: var(--mint);
+  font: 12px/1.8 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+.code-muted { color: var(--muted-2); }
+.code-key { color: var(--teal-bright); }
+.console-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 19px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.console-foot strong { color: var(--text); font-weight: 600; }
+.network {
+  position: absolute;
+  right: 28px;
+  bottom: 5px;
+  width: 430px;
+  max-width: 90%;
+  opacity: .8;
+}
+.network-line { stroke: var(--line-strong); stroke-width: 1; }
+.network-node { fill: var(--bg); stroke: var(--teal); stroke-width: 1.4; }
+.network-node.core { fill: var(--teal); stroke: var(--teal-bright); }
+.network-label { fill: var(--muted-2); font: 11px ui-sans-serif, system-ui, sans-serif; letter-spacing: .08em; }
+
+.trust-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.trust-item { padding: 22px 26px; }
+.trust-item + .trust-item { border-left: 1px solid var(--line); }
+.trust-label { margin-bottom: 5px; color: var(--muted-2); font-size: 10px; font-weight: 750; letter-spacing: .15em; text-transform: uppercase; }
+.trust-value { color: var(--text); font-size: 14px; }
+
+.section { padding: 110px 0; }
+.section-heading { max-width: 650px; margin-bottom: 38px; }
+.section-heading h2 { margin-bottom: 13px; font-size: clamp(30px, 4vw, 46px); letter-spacing: -.045em; line-height: 1.05; }
+.section-heading p { margin-bottom: 0; color: var(--muted); font-size: 16px; }
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.feature-card {
+  min-height: 230px;
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.feature-card:hover { border-color: var(--line-strong); }
+.feature-icon {
+  width: 37px;
+  height: 37px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 31px;
+  border: 1px solid rgba(30, 178, 170, .45);
+  border-radius: 9px;
+  background: #0c211f;
+  color: var(--teal-bright);
+}
+.feature-icon svg { width: 19px; height: 19px; }
+.feature-card h3 { margin-bottom: 9px; font-size: 18px; letter-spacing: -.02em; }
+.feature-card p { margin-bottom: 0; color: var(--muted); font-size: 14px; }
+.steps-section { padding-top: 18px; }
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.step { min-height: 195px; padding: 28px 26px; }
+.step + .step { border-left: 1px solid var(--line); }
+.step-number { margin-bottom: 27px; color: var(--teal); font: 12px "SFMono-Regular", Consolas, monospace; }
+.step h3 { margin-bottom: 8px; font-size: 17px; }
+.step p { margin-bottom: 0; color: var(--muted); font-size: 14px; }
+.closing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 44px 0 88px;
+}
+.closing h2 { max-width: 580px; margin-bottom: 0; font-size: clamp(28px, 4vw, 43px); letter-spacing: -.045em; line-height: 1.08; }
+.site-footer { border-top: 1px solid var(--line); }
+.footer-inner {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  color: var(--muted-2);
+  font-size: 12px;
+}
+.footer-links { display: flex; gap: 20px; }
+.footer-links a:hover { color: var(--text); }
+
+.login-shell {
+  min-height: calc(100vh - 77px);
+  display: grid;
+  place-items: center;
+  padding: 60px 24px;
+}
+.login-card {
+  width: min(100%, 430px);
+  padding: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, .25);
+}
+.login-card .eyebrow { margin-bottom: 18px; }
+.login-card h1 { margin-bottom: 13px; font-size: 36px; letter-spacing: -.05em; line-height: 1.05; }
+.login-card .intro { margin-bottom: 26px; color: var(--muted); }
+.github-button { width: 100%; min-height: 52px; }
+.login-note {
+  margin: 18px 0 28px;
+  padding: 13px 14px;
+  border-left: 2px solid var(--teal);
+  background: #0b1d20;
+  color: var(--muted);
+  font-size: 13px;
+}
+.login-back { color: var(--muted-2); font-size: 13px; }
+.login-back:hover { color: var(--teal-bright); }
+
+#app { padding: 50px 0 80px; }
+.dashboard-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 25px;
+  margin-bottom: 34px;
+}
+.dashboard-heading h1 { margin-bottom: 8px; font-size: clamp(32px, 4vw, 48px); letter-spacing: -.05em; line-height: 1; }
+.dashboard-heading p:last-child { margin-bottom: 0; color: var(--muted); }
+.dashboard-heading .eyebrow { margin-bottom: 15px; }
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+.metric {
+  padding: 21px 23px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+}
+.metric-value { color: var(--teal-bright); font-size: 29px; font-weight: 760; letter-spacing: -.04em; }
+.metric-label { margin-top: 4px; color: var(--muted-2); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.dashboard-card {
+  margin-top: 14px;
+  padding: 25px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+}
+.dashboard-card h2 { margin-bottom: 18px; font-size: 16px; letter-spacing: -.01em; }
+.dashboard-card h2 .badge { margin-left: 8px; vertical-align: 2px; }
+.dashboard-row { display: flex; align-items: center; gap: 12px; margin-bottom: 17px; }
+.dashboard-row input { flex: 1; min-width: 0; }
+input {
+  min-height: 44px;
+  width: 100%;
+  padding: 0 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  outline: none;
+  background: #0a131b;
+  color: var(--text);
+}
+input::placeholder { color: var(--muted-2); }
+input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(30, 178, 170, .14); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { padding: 10px 8px; color: var(--muted-2); font-size: 10px; font-weight: 750; letter-spacing: .14em; text-align: left; text-transform: uppercase; }
+td { padding: 14px 8px; border-top: 1px solid var(--line); color: var(--muted); vertical-align: middle; }
+td:first-child { color: var(--text); }
+.mono { color: var(--muted); font: 12px "SFMono-Regular", Consolas, monospace; }
+.bar { height: 5px; min-width: 100px; margin-top: 7px; overflow: hidden; border-radius: 99px; background: #091119; }
+.bar > div { height: 100%; border-radius: inherit; background: var(--teal); }
+.badge { display: inline-block; padding: 4px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+.badge.ok { background: rgba(85, 214, 161, .13); color: var(--green); }
+.badge.off { background: rgba(154, 175, 179, .12); color: var(--muted); }
+.badge.limit { background: rgba(30, 178, 170, .14); color: var(--teal-bright); }
+.badge.revoked { background: rgba(242, 135, 135, .13); color: var(--red); }
+.hint { margin: 14px 0 0; color: var(--muted-2); font-size: 12px; }
+#msg {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 5;
+  max-width: min(420px, calc(100vw - 48px));
+  padding: 13px 16px;
+  display: none;
+  border: 1px solid var(--teal);
+  border-radius: 9px;
+  background: #09201f;
+  color: var(--mint);
+  font-size: 13px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .3);
+}
+[hidden] { display: none !important; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; gap: 35px; padding-top: 65px; }
+  .hero-visual { min-height: 430px; }
+  .console { left: 0; right: auto; }
+  .network { right: 0; }
+}
+@media (max-width: 680px) {
+  .header-inner, .page-shell { width: min(100% - 32px, var(--max)); }
+  .header-inner { min-height: 68px; gap: 15px; }
+  .brand-note { display: none; }
+  .site-nav { gap: 13px; }
+  .site-nav a:not(.nav-cta) { display: none; }
+  .hero { min-height: auto; padding: 58px 0 55px; }
+  .hero h1 { font-size: clamp(42px, 14vw, 64px); }
+  .hero-copy { font-size: 16px; }
+  .hero-actions { align-items: stretch; flex-direction: column; }
+  .button { width: 100%; }
+  .microcopy { align-items: flex-start; }
+  .hero-visual { min-height: 385px; }
+  .console { top: 0; }
+  .console-body { padding: 19px; }
+  .network { bottom: 0; width: 360px; }
+  .trust-strip, .feature-grid, .steps, .metric-grid { grid-template-columns: 1fr; }
+  .trust-item { padding: 18px 0; }
+  .trust-item + .trust-item, .step + .step { border-top: 1px solid var(--line); border-left: 0; }
+  .section { padding: 75px 0; }
+  .feature-card { min-height: auto; }
+  .closing, .dashboard-heading { align-items: stretch; flex-direction: column; }
+  .closing { padding-bottom: 65px; }
+  .footer-inner { align-items: flex-start; flex-direction: column; justify-content: center; padding: 20px 0; }
+  .login-shell { min-height: calc(100vh - 69px); padding: 32px 16px; }
+  .login-card { padding: 28px 22px; }
+  #app { padding: 34px 0 60px; }
+  .dashboard-card { padding: 19px 15px; }
+  .dashboard-row { align-items: stretch; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
 </style>
 </head>
 <body>
-<header>
-  <img src="/assets/casualcrawl-logo.png" alt="CasualCrawl logo">
-  <h1>CasualCrawl</h1>
-  <span class="spacer"></span>
-  <button id="logout" class="ghost" style="display:none">Log out</button>
+<header class="site-header" id="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/" aria-label="CasualCrawl home">
+      <img class="brand-mark" src="/assets/casualcrawl-logo.png" alt="">
+      <span><span class="brand-name">CasualCrawl</span><span class="brand-note">community crawler</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Primary navigation">
+      <a href="/#capabilities">Product</a>
+      <a href="/#how-it-works">How it works</a>
+      <a href="https://github.com/kyssta-exe/casualcrawl-beta" target="_blank" rel="noreferrer">GitHub</a>
+      <a class="nav-cta" id="header-auth-link" href="/login">Sign in with GitHub</a>
+      <button class="button secondary" id="logout" type="button" hidden>Log out</button>
+    </nav>
+  </div>
 </header>
 
-<div id="auth" class="card">
-  <h1>Community access</h1>
-  <p class="hint" style="margin-bottom:16px">Sign up for an API key. Link your own node to contribute capacity and go unlimited.</p>
-  <form id="authform">
-    <input id="email" type="email" placeholder="email" autocomplete="email" required>
-    <input id="password" type="password" placeholder="password (min 8 chars)" autocomplete="current-password" required>
-    <div class="row">
-      <button type="submit" id="authbtn" class="primary">Sign up</button>
-      <button type="button" id="switchbtn" class="ghost">Log in instead</button>
-      <button type="button" id="github" class="ghost">Continue with GitHub</button>
-      <button type="button" id="resetbtn" class="ghost">Forgot password?</button>
-    </div>
-  </form>
-  <p class="hint">On first signup the API key is shown once — copy it now.</p>
-</div>
-
-<div id="app">
-  <div class="wrap">
-    <div class="grid">
-      <div class="card"><div class="stat"><div class="num" id="s-quota">–</div><div class="lbl">monthly limit</div></div></div>
-      <div class="card"><div class="stat"><div class="num" id="s-used">–</div><div class="lbl">requests used</div></div></div>
-      <div class="card"><div class="stat"><div class="num" id="s-nodes">–</div><div class="lbl">linked nodes</div></div></div>
-    </div>
-
-    <div class="card">
-      <h2>API keys</h2>
-      <div class="row" style="margin-bottom:14px">
-        <input id="limit" type="number" placeholder="monthly limit (default 500000)" value="500000">
-        <button id="newkey">Create key</button>
+<main id="landing-page">
+  <div class="page-shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow"><span class="eyebrow-dot"></span>Open web crawling / community network</p>
+        <h1 id="hero-title">Crawl the web.<br><span class="accent">Keep it simple.</span></h1>
+        <p class="hero-copy">CasualCrawl is a lightweight, API-first crawler for agents and builders. Scrape a page, crawl a site, or add your own node when you need more capacity.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="/login">
+            <svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .6a11.4 11.4 0 0 0-3.6 22.22c.57.1.78-.25.78-.55v-2.03c-3.18.69-3.85-1.34-3.85-1.34-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.67 1.25 3.32.96.1-.74.4-1.25.72-1.54-2.54-.29-5.2-1.27-5.2-5.65 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.45.11-3.03 0 0 .96-.31 3.14 1.17a10.9 10.9 0 0 1 5.72 0c2.18-1.48 3.14-1.17 3.14-1.17.62 1.58.23 2.74.11 3.03.73.8 1.18 1.82 1.18 3.07 0 4.39-2.66 5.36-5.21 5.64.41.36.77 1.07.77 2.15v3.19c0 .3.2.65.79.54A11.4 11.4 0 0 0 12 .6Z"/></svg>
+            Continue with GitHub
+          </a>
+          <a class="button secondary" href="https://github.com/kyssta-exe/casualcrawl-beta#readme" target="_blank" rel="noreferrer">Read the documentation</a>
+        </div>
+        <p class="microcopy"><span class="check">✓</span> GitHub is the only sign-in. No separate credentials to manage.</p>
       </div>
-      <table><thead><tr><th>Key</th><th>Status</th><th>Usage</th><th></th></tr></thead><tbody id="keys"></tbody></table>
-      <p class="hint">Copy the key when created. Use it as <span class="mono">X-API-Key: [your key]</span> or <span class="mono">Authorization: Bearer [your key]</span>.</p>
-    </div>
+      <div class="hero-visual" aria-label="CasualCrawl API request preview">
+        <div class="console">
+          <div class="console-top">
+            <span class="console-dot"></span><span class="console-dot"></span><span class="console-dot"></span>
+            <span class="console-label">request-preview</span>
+            <span class="console-state">ready</span>
+          </div>
+          <div class="console-body">
+            <p class="console-kicker">A small API surface for useful crawling</p>
+            <pre class="code-block"><span class="code-muted">$ </span><span class="code-key">curl</span> -X POST /v1/scrape \
+  -H <span class="code-key">'X-API-Key: cc_live_…'</span> \
+  -d <span class="code-key">'{"url":"https://example.com"}'</span>
 
-    <div class="card">
-      <h2>Nodes <span class="badge limit" id="unlimited" style="display:none">unlimited active</span></h2>
-      <div class="row" style="margin-bottom:14px">
-        <button id="newtoken">Generate node link token</button>
+<span class="code-muted">→ response</span>
+<span class="code-key">{"format":"markdown","status":"ok"}</span></pre>
+            <div class="console-foot"><span>local or shared</span><strong>one endpoint · many uses</strong></div>
+          </div>
+        </div>
+        <svg class="network" viewBox="0 0 430 230" role="img" aria-label="Connected crawler nodes">
+          <line class="network-line" x1="74" y1="77" x2="208" y2="121"/><line class="network-line" x1="208" y1="121" x2="355" y2="62"/>
+          <line class="network-line" x1="208" y1="121" x2="324" y2="190"/><line class="network-line" x1="74" y1="77" x2="111" y2="188"/>
+          <line class="network-line" x1="111" y1="188" x2="324" y2="190"/><line class="network-line" x1="355" y1="62" x2="395" y2="157"/>
+          <circle class="network-node" cx="74" cy="77" r="8"/><circle class="network-node core" cx="208" cy="121" r="11"/>
+          <circle class="network-node" cx="355" cy="62" r="8"/><circle class="network-node" cx="324" cy="190" r="8"/>
+          <circle class="network-node" cx="111" cy="188" r="8"/><circle class="network-node" cx="395" cy="157" r="8"/>
+          <text class="network-label" x="191" y="151">CONTROLLER</text>
+          <text class="network-label" x="48" y="52">NODE</text><text class="network-label" x="338" y="38">NODE</text>
+        </svg>
       </div>
-      <div id="linkbox" style="display:none">
-        <pre id="linkpre"></pre>
-        <p class="hint">Run on your machine: <span class="mono">export CASUALCRAWL_NODE_LINK_TOKEN='cc_link_…'<br>casualcrawl node --controller https://… --name home-node</span></p>
-      </div>
-      <table><thead><tr><th>Name</th><th>Status</th><th>Jobs</th><th>Last seen</th></tr></thead><tbody id="nodes"></tbody></table>
-    </div>
+    </section>
 
-    <div class="card">
-      <h2>API usage <span class="badge limit" id="rate-badge" style="display:none"></span></h2>
-      <div class="bar"><div id="rate-bar" style="width:0%"></div></div>
-      <table><thead><tr><th>Endpoint</th><th>Request</th><th>Examples</th></tr></thead>
-      <tbody>
-        <tr><td class="mono">POST /v1/scrape</td><td>1 unit</td><td class="mono">scrape a page to markdown</td></tr>
-        <tr><td class="mono">POST /v1/crawl</td><td>maxPages units</td><td class="mono">crawl a site</td></tr>
-        <tr><td class="mono">POST /v1/jobs</td><td>maxPages units</td><td class="mono">dispatch to community nodes</td></tr>
-      </tbody></table>
-    </div>
+    <section class="trust-strip" aria-label="CasualCrawl product qualities">
+      <div class="trust-item"><div class="trust-label">Built for</div><div class="trust-value">AI agents and developers</div></div>
+      <div class="trust-item"><div class="trust-label">Deployment</div><div class="trust-value">Local machine or your server</div></div>
+      <div class="trust-item"><div class="trust-label">Capacity</div><div class="trust-value">Bring a node when you need it</div></div>
+    </section>
+
+    <section class="section" id="capabilities" aria-labelledby="capabilities-title">
+      <div class="section-heading">
+        <p class="eyebrow"><span class="eyebrow-dot"></span>What you get</p>
+        <h2 id="capabilities-title">The useful parts of crawling, without the ceremony.</h2>
+        <p>Start with the API. Keep the deployment small. Add shared capacity only when the work actually calls for it.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h6M8 16h4"/></svg></span>
+          <h3>Simple API surface</h3>
+          <p>Scrape pages, crawl sites, and dispatch jobs through predictable HTTP endpoints built for automation.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.64 5.64l2.83 2.83M15.53 15.53l2.83 2.83M18.36 5.64l-2.83 2.83M8.47 15.53l-2.83 2.83"/></svg></span>
+          <h3>Node-powered capacity</h3>
+          <p>Run your own node locally or on a server, then contribute capacity to the network when you choose.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg></span>
+          <h3>Made to stay light</h3>
+          <p>Use the crawler as a focused service instead of carrying a heavyweight platform for every request.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section steps-section" id="how-it-works" aria-labelledby="steps-title">
+      <div class="section-heading">
+        <p class="eyebrow"><span class="eyebrow-dot"></span>How it works</p>
+        <h2 id="steps-title">From zero to a working crawl in three moves.</h2>
+      </div>
+      <div class="steps">
+        <article class="step"><div class="step-number">01 / ACCESS</div><h3>Continue with GitHub</h3><p>Your GitHub account creates or opens your CasualCrawl workspace. Access stays in one place.</p></article>
+        <article class="step"><div class="step-number">02 / CRAWL</div><h3>Call the API</h3><p>Use your key from the dashboard to request markdown, crawl a site, or dispatch a job.</p></article>
+        <article class="step"><div class="step-number">03 / EXPAND</div><h3>Connect a node</h3><p>Need more capacity? Link a node you control and see it from the same workspace.</p></article>
+      </div>
+    </section>
+
+    <section class="closing" aria-labelledby="closing-title">
+      <h2 id="closing-title">A crawler that gets out of the way.</h2>
+      <a class="button primary" href="/login"><svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .6a11.4 11.4 0 0 0-3.6 22.22c.57.1.78-.25.78-.55v-2.03c-3.18.69-3.85-1.34-3.85-1.34-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.67 1.25 3.32.96.1-.74.4-1.25.72-1.54-2.54-.29-5.2-1.27-5.2-5.65 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.45.11-3.03 0 0 .96-.31 3.14 1.17a10.9 10.9 0 0 1 5.72 0c2.18-1.48 3.14-1.17 3.14-1.17.62 1.58.23 2.74.11 3.03.73.8 1.18 1.82 1.18 3.07 0 4.39-2.66 5.36-5.21 5.64.41.36.77 1.07.77 2.15v3.19c0 .3.2.65.79.54A11.4 11.4 0 0 0 12 .6Z"/></svg>Access CasualCrawl</a>
+    </section>
   </div>
-</div>
+  <footer class="site-footer"><div class="page-shell footer-inner"><span>CasualCrawl — community-powered crawling.</span><span class="footer-links"><a href="https://github.com/kyssta-exe/casualcrawl-beta" target="_blank" rel="noreferrer">Source</a><a href="/login">Sign in</a></span></div></footer>
+</main>
 
-<div id="msg"></div>
+<main id="login-page" hidden>
+  <div class="login-shell">
+    <section class="login-card" aria-labelledby="login-title">
+      <p class="eyebrow"><span class="eyebrow-dot"></span>CasualCrawl access</p>
+      <h1 id="login-title">Welcome in.</h1>
+      <p class="intro">Use your GitHub account to create or access your CasualCrawl workspace.</p>
+      <button class="button primary github-button" id="github" type="button">
+        <svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .6a11.4 11.4 0 0 0-3.6 22.22c.57.1.78-.25.78-.55v-2.03c-3.18.69-3.85-1.34-3.85-1.34-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.67 1.25 3.32.96.1-.74.4-1.25.72-1.54-2.54-.29-5.2-1.27-5.2-5.65 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.45.11-3.03 0 0 .96-.31 3.14 1.17a10.9 10.9 0 0 1 5.72 0c2.18-1.48 3.14-1.17 3.14-1.17.62 1.58.23 2.74.11 3.03.73.8 1.18 1.82 1.18 3.07 0 4.39-2.66 5.36-5.21 5.64.41.36.77 1.07.77 2.15v3.19c0 .3.2.65.79.54A11.4 11.4 0 0 0 12 .6Z"/></svg>
+        Continue with GitHub
+      </button>
+      <p class="login-note">New here? Your CasualCrawl account is created automatically after GitHub authorization. Access is handled through GitHub only.</p>
+      <a class="login-back" href="/">← Back to homepage</a>
+    </section>
+  </div>
+</main>
 
+<main id="app" hidden>
+  <div class="page-shell">
+    <section class="dashboard-heading" aria-labelledby="dashboard-title">
+      <div><p class="eyebrow"><span class="eyebrow-dot"></span>Control plane</p><h1 id="dashboard-title">Your crawl workspace.</h1><p>Manage keys, connect nodes, and keep your API access in one place.</p></div>
+      <a class="button secondary" href="https://github.com/kyssta-exe/casualcrawl-beta#readme" target="_blank" rel="noreferrer">Read the docs</a>
+    </section>
+    <section class="metric-grid" aria-label="Workspace summary">
+      <div class="metric"><div class="metric-value" id="s-quota">–</div><div class="metric-label">monthly limit</div></div>
+      <div class="metric"><div class="metric-value" id="s-used">–</div><div class="metric-label">requests used</div></div>
+      <div class="metric"><div class="metric-value" id="s-nodes">–</div><div class="metric-label">linked nodes</div></div>
+    </section>
+    <section class="dashboard-card">
+      <h2>API keys</h2>
+      <div class="dashboard-row"><input id="limit" type="number" min="1" step="1" placeholder="Monthly limit" value="500000"><button class="button primary" id="newkey" type="button">Create key</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Key</th><th>Status</th><th>Usage</th><th aria-label="Actions"></th></tr></thead><tbody id="keys"></tbody></table></div>
+      <p class="hint">A new key is shown only once. Use it with <span class="mono">X-API-Key</span> or <span class="mono">Authorization: Bearer</span>.</p>
+    </section>
+    <section class="dashboard-card">
+      <h2>Nodes <span class="badge limit" id="unlimited" hidden>unlimited active</span></h2>
+      <div class="dashboard-row"><button class="button secondary" id="newtoken" type="button">Generate node link token</button></div>
+      <div id="linkbox" hidden><pre class="code-block" id="linkpre"></pre><p class="hint">Run the node command on the machine you want to contribute.</p></div>
+      <div class="table-wrap"><table><thead><tr><th>Name</th><th>Status</th><th>Jobs</th><th>Last seen</th></tr></thead><tbody id="nodes"></tbody></table></div>
+    </section>
+    <section class="dashboard-card">
+      <h2>API usage <span class="badge limit" id="rate-badge" hidden></span></h2>
+      <div class="bar"><div id="rate-bar" style="width:0%"></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Endpoint</th><th>Request</th><th>Use it for</th></tr></thead><tbody>
+        <tr><td class="mono">POST /v1/scrape</td><td>1 unit</td><td>Scrape a page to markdown</td></tr>
+        <tr><td class="mono">POST /v1/crawl</td><td>maxPages units</td><td>Crawl a site</td></tr>
+        <tr><td class="mono">POST /v1/jobs</td><td>maxPages units</td><td>Dispatch to community nodes</td></tr>
+      </tbody></table></div>
+    </section>
+  </div>
+</main>
+
+<div id="msg" role="status" aria-live="polite"></div>
 <script>
-const $=id=>document.getElementById(id);
-let mode='signup';
-async function api(method,path,body){
-  const r=await fetch(path,{method,headers:body?{'Content-Type':'application/json'}:{},credentials:'same-origin',body:body?JSON.stringify(body):undefined});
-  let d={}; try{d=await r.json()}catch(e){}
-  if(!r.ok) throw new Error((d.detail&&d.detail.error)?d.detail.error:(d.detail||('HTTP '+r.status)));
-  return d;
-}
-function msg(t){const m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(m._t);m._t=setTimeout(()=>m.style.display='none',6000);}
-function fmt(n){return n==null?'–':Number(n).toLocaleString();}
-function esc(s){const d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
+const $ = id => document.getElementById(id);
+const route = window.location.pathname.replace(/\/+$/, '') || '/';
+const page = route === '/login' || route === '/signin' ? 'login' : route === '/dashboard' ? 'app' : 'home';
 
-async function refresh(){
-  const me=await api('GET','/v1/me');
-  const keys=me.account.keys||[];
-  const nodes=me.account.nodes||[];
-  const usage=me.account.usage;
-  const unlimited=!!(usage&&usage.unlimited)||nodes.some(n=>n.community&&n.healthy);
-  const limit=usage?usage.monthlyLimit:Number(me.account.monthlyLimit||keys.reduce((s,k)=>s+k.monthlyLimit,0));
-  const used=usage?usage.used:Number(me.account.used??keys.reduce((s,k)=>s+k.used,0));
-  $('s-quota').textContent=unlimited?'∞':fmt(limit);
-  $('s-used').textContent=fmt(used);
-  $('s-nodes').textContent=fmt(nodes.length);
-  $('unlimited').style.display=unlimited?'inline-block':'none';
-  $('rate-badge').style.display=unlimited?'inline-block':'none';
-  $('rate-badge').textContent=unlimited?'unlimited':'';
-  $('rate-bar').style.width=(limit>0&&!unlimited)?(Math.min(100,(used/limit*100)).toFixed(1)+'%'):'0%';
-
-  const kb=$('keys');kb.innerHTML='';
-  for(const key of keys){
-    const pct=key.monthlyLimit>0?Math.min(100,(key.used/key.monthlyLimit*100)):0;
-    const tr=document.createElement('tr');
-    tr.innerHTML='<td class="mono">'+esc(key.prefix)+'…</td>'+
-      '<td>'+(key.active?'<span class="badge ok">active</span>':'<span class="badge revoked">revoked</span>')+'</td>'+
-      '<td class="mono">'+fmt(key.used)+' / '+fmt(key.monthlyLimit)+'<div class="bar"><div style="width:'+pct+'%"></div></div></td>'+
-      '<td>'+(key.active?'<button class="danger" data-p="'+esc(key.prefix)+'" onclick="revoke(this.dataset.p)">Revoke</button>':'')+'</td>';
-    kb.appendChild(tr);
-  }
-  const nb=$('nodes');nb.innerHTML='';
-  for(const n of nodes){
-    const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+esc(n.name)+'</td>'+
-      '<td>'+(n.healthy?'<span class="badge ok">healthy</span>':'<span class="badge off">offline</span>')+'</td>'+
-      '<td class="mono">'+fmt(n.jobsDone)+'</td><td class="mono">'+esc(n.lastSeen||'—')+'</td>';
-    nb.appendChild(tr);
+function show(id, visible) { $(id).hidden = !visible; }
+function configureHeader() {
+  const link = $('header-auth-link');
+  const logout = $('logout');
+  if (page === 'app') {
+    link.hidden = true;
+    logout.hidden = false;
+  } else if (page === 'login') {
+    link.textContent = 'Back home';
+    link.href = '/';
+    logout.hidden = true;
+  } else {
+    link.hidden = false;
+    logout.hidden = true;
   }
 }
-async function revoke(p){await api('DELETE','/v1/account/keys/'+p);msg('key revoked');refresh();}
-async function newkey(){
-  const limit=parseInt($('limit').value||'500000',10);
-  const r=await api('POST','/v1/account/keys',{monthlyLimit:limit});
-  msg('Created key (shown once): '+r.apiKey);
-  refresh();
+
+async function api(method, path, body) {
+  const response = await fetch(path, {
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : {},
+    credentials: 'same-origin',
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  let data = {};
+  try { data = await response.json(); } catch (_) {}
+  if (!response.ok) {
+    const detail = data.detail && typeof data.detail === 'object' ? data.detail.error : data.detail;
+    throw new Error(detail || ('Request failed (' + response.status + ')'));
+  }
+  return data;
 }
-async function nlink(){
-  const r=await api('POST','/v1/account/node-link');
-  $('linkpre').textContent=r.token;
-  $('linkbox').style.display='block';
-  msg('link token generated — expires in '+Math.round(r.expiresIn/86400)+' days');
+function msg(text) {
+  const element = $('msg');
+  element.textContent = text;
+  element.style.display = 'block';
+  clearTimeout(element._timer);
+  element._timer = setTimeout(() => { element.style.display = 'none'; }, 6000);
+}
+function fmt(value) { return value == null ? '–' : Number(value).toLocaleString(); }
+function esc(value) {
+  const element = document.createElement('span');
+  element.textContent = value == null ? '' : String(value);
+  return element.innerHTML;
 }
 
-$('authform').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const body={email:$('email').value.trim(),password:$('password').value};
-  try{
-    const r=await api('POST',mode==='signup'?'/v1/auth/signup':'/v1/auth/login',body);
-    if(r.apiKey) msg('Account created. API key (shown once): '+r.apiKey);
-    if(r.verifyLink) msg('Verify your email: '+r.verifyLink);
-    $('auth').style.display='none';
-    $('logout').style.display='inline-block';
-    $('app').style.display='block';
-    await refresh();
-  }catch(err){msg(err.message);}
-});
-$('switchbtn').addEventListener('click',()=>{
-  mode=mode==='signup'?'login':'signup';
-  $('authbtn').textContent=mode==='signup'?'Sign up':'Log in';
-  $('switchbtn').textContent=mode==='signup'?'Log in instead':'Sign up instead';
-});
-$('logout').addEventListener('click',async()=>{await api('POST','/v1/auth/logout');location.reload();});
-$('github').addEventListener('click',()=>{location.href='/v1/auth/github';});
-$('resetbtn').addEventListener('click',async()=>{
-  const email=window.prompt('Email for the reset link:');
-  if(!email) return;
-  try{await api('POST','/v1/auth/reset-request',{email});msg('If that email exists, a reset link was sent.');}catch(err){msg(err.message);}
-});
-$('newkey').addEventListener('click',newkey);
-$('newtoken').addEventListener('click',nlink);
+async function refresh() {
+  const me = await api('GET', '/v1/me');
+  const account = me.account || {};
+  const keys = account.keys || [];
+  const nodes = account.nodes || [];
+  const usage = account.usage;
+  const unlimited = !!(usage && usage.unlimited) || nodes.some(node => node.community && node.healthy);
+  const limit = usage ? usage.monthlyLimit : Number(account.monthlyLimit || keys.reduce((sum, key) => sum + key.monthlyLimit, 0));
+  const used = usage ? usage.used : Number(account.used ?? keys.reduce((sum, key) => sum + key.used, 0));
 
-(async()=>{
-  try{
+  $('s-quota').textContent = unlimited ? '∞' : fmt(limit);
+  $('s-used').textContent = fmt(used);
+  $('s-nodes').textContent = fmt(nodes.length);
+  $('unlimited').hidden = !unlimited;
+  $('rate-badge').hidden = !unlimited;
+  $('rate-badge').textContent = unlimited ? 'unlimited' : '';
+  $('rate-bar').style.width = limit > 0 && !unlimited ? Math.min(100, used / limit * 100).toFixed(1) + '%' : '0%';
+
+  const keyBody = $('keys');
+  keyBody.replaceChildren();
+  for (const key of keys) {
+    const percentage = key.monthlyLimit > 0 ? Math.min(100, key.used / key.monthlyLimit * 100) : 0;
+    const row = document.createElement('tr');
+    row.innerHTML = '<td class="mono">' + esc(key.prefix) + '…</td>' +
+      '<td>' + (key.active ? '<span class="badge ok">active</span>' : '<span class="badge revoked">revoked</span>') + '</td>' +
+      '<td class="mono">' + fmt(key.used) + ' / ' + fmt(key.monthlyLimit) + '<div class="bar"><div style="width:' + percentage + '%"></div></div></td>' +
+      '<td>' + (key.active ? '<button class="button secondary" data-revoke="' + encodeURIComponent(key.prefix) + '" type="button">Revoke</button>' : '') + '</td>';
+    keyBody.appendChild(row);
+  }
+
+  const nodeBody = $('nodes');
+  nodeBody.replaceChildren();
+  for (const node of nodes) {
+    const row = document.createElement('tr');
+    row.innerHTML = '<td>' + esc(node.name) + '</td>' +
+      '<td>' + (node.healthy ? '<span class="badge ok">healthy</span>' : '<span class="badge off">offline</span>') + '</td>' +
+      '<td class="mono">' + fmt(node.jobsDone) + '</td><td class="mono">' + esc(node.lastSeen || '—') + '</td>';
+    nodeBody.appendChild(row);
+  }
+}
+
+async function revoke(prefix) {
+  try {
+    await api('DELETE', '/v1/account/keys/' + encodeURIComponent(prefix));
+    msg('API key revoked.');
     await refresh();
-    $('auth').style.display='none';
-    $('logout').style.display='inline-block';
-    $('app').style.display='block';
-  }catch(e){
-    $('auth').style.display='block';
-    $('app').style.display='none';
+  } catch (error) { msg(error.message); }
+}
+async function createKey() {
+  const limit = Number.parseInt($('limit').value || '500000', 10);
+  if (!Number.isSafeInteger(limit) || limit < 1) { msg('Enter a positive monthly limit.'); return; }
+  try {
+    const result = await api('POST', '/v1/account/keys', { monthlyLimit: limit });
+    msg('New key — copy it now: ' + result.apiKey);
+    await refresh();
+  } catch (error) { msg(error.message); }
+}
+async function createNodeLink() {
+  try {
+    const result = await api('POST', '/v1/account/node-link');
+    $('linkpre').textContent = result.token;
+    $('linkbox').hidden = false;
+    msg('Node link token generated.');
+  } catch (error) { msg(error.message); }
+}
+
+$('github').addEventListener('click', () => { window.location.href = '/v1/auth/github'; });
+$('keys').addEventListener('click', event => {
+  const button = event.target.closest('[data-revoke]');
+  if (button) revoke(decodeURIComponent(button.dataset.revoke));
+});
+$('newkey').addEventListener('click', createKey);
+$('newtoken').addEventListener('click', createNodeLink);
+$('logout').addEventListener('click', async () => {
+  try { await api('POST', '/v1/auth/logout'); } finally { window.location.replace('/'); }
+});
+
+(async function init() {
+  configureHeader();
+  show('landing-page', page === 'home');
+  show('login-page', page === 'login');
+  show('app', false);
+  if (page === 'home') {
+    try {
+      await api('GET', '/v1/me');
+      $('header-auth-link').textContent = 'Open dashboard';
+      $('header-auth-link').href = '/dashboard';
+    } catch (_) {}
+    return;
+  }
+  if (page === 'app') {
+    try {
+      await refresh();
+      show('app', true);
+    } catch (_) {
+      window.location.replace('/login');
+    }
   }
 })();
 </script>

@@ -1,7 +1,8 @@
 {
   "rewrites": [
     { "source": "/v1/:path*", "destination": "/api/v1/:path*" },
-    { "source": "/health", "destination": "/api/health" }
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/(login|signin|dashboard)", "destination": "/index.html" }
   ],
   "headers": [
     {

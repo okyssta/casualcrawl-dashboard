@@ -1,12 +1,18 @@
 # CasualCrawl Dashboard
 
-The hosted dashboard for CasualCrawl. It is intentionally separate from the
-crawler/controller repository so it can deploy to Vercel as a small static app
-with one serverless API proxy.
+Public homepage, GitHub-only sign-in screen, and authenticated dashboard for
+CasualCrawl. It is intentionally separate from the crawler/controller so it can
+deploy to Vercel as a small static app with one serverless API proxy.
+
+## Routes
+
+- `/` — product homepage
+- `/login` and `/signin` — GitHub-only authentication entry point
+- `/dashboard` — authenticated workspace
 
 ## Vercel setup
 
-Create a Vercel project from this repository and add this environment variable:
+Create a Vercel project from this repository and add:
 
 ```text
 CASUALCRAWL_API_ORIGIN=https://your-casualcrawl-controller.example.com
@@ -22,8 +28,7 @@ Set the controller's public base URL to the deployed dashboard URL:
 CASUALCRAWL_BASE_URL=https://your-dashboard.example.com
 ```
 
-That makes verification/reset links and the GitHub OAuth callback use the
-Vercel dashboard URL. The GitHub OAuth callback URL is:
+That makes the GitHub OAuth callback URL:
 
 ```text
 https://your-dashboard.example.com/v1/auth/github/callback
